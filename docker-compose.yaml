@@ -2,22 +2,23 @@ version: "3.9"
 
 services:
   spark-master:
-    image: bitnami/spark:3.5.3
+    image: bitnami/spark:4.0.0
     container_name: spark-master
     environment:
       - SPARK_MODE=master
       - SPARK_LOG_LEVEL=INFO
+      # History UI needs event logs
       - SPARK_EVENTLOG_ENABLED=true
       - SPARK_EVENTLOG_DIR=file:///opt/spark-events
     ports:
-      - "7077:7077"   # Spark RPC (cluster)
+      - "7077:7077"   # cluster RPC
       - "8080:8080"   # Master UI
     volumes:
       - spark-events:/opt/spark-events
       - ./data:/data
 
   spark-worker-1:
-    image: bitnami/spark:3.5.3
+    image: bitnami/spark:4.0.0
     container_name: spark-worker-1
     depends_on: [spark-master]
     environment:
@@ -26,15 +27,16 @@ services:
       - SPARK_WORKER_CORES=2
       - SPARK_WORKER_MEMORY=4G
       - SPARK_LOG_LEVEL=WARN
-      # Make sure executors use Bitnami's Python inside the worker image
+      # Executors should run the Bitnami Python (3.12 in this image)
       - SPARK_WORKER_OPTS=-Dspark.executorEnv.PYSPARK_PYTHON=/opt/bitnami/python/bin/python
+      - PYSPARK_PYTHON=/opt/bitnami/python/bin/python
     ports:
-      - "8081:8081"   # Worker UI (optional)
+      - "8081:8081"   # Worker UI
     volumes:
       - ./data:/data
 
   spark-history:
-    image: bitnami/spark:3.5.3
+    image: bitnami/spark:4.0.0
     container_name: spark-history
     depends_on: [spark-master]
     environment:
@@ -46,16 +48,15 @@ services:
       - spark-events:/opt/spark-events
 
   jupyter:
-    # Pin notebook image to same Spark minor (3.5.3) and set fixed driver ports
-    image: quay.io/jupyter/pyspark-notebook:spark-3.5.3
+    # Jupyter stacks moved to quay.io; Spark 4.x images are available there.
+    image: quay.io/jupyter/pyspark-notebook:spark-4.0.0
     container_name: spark-notebooks
     depends_on: [spark-master]
     environment:
       - JUPYTER_TOKEN=dev
       - SPARK_MASTER=spark://spark-master:7077
-      - PYSPARK_PYTHON=python3
-      # Driver must be reachable by workers; also tell executors which Python to use.
-      - PYSPARK_SUBMIT_ARGS=--conf spark.ui.showConsoleProgress=false --conf spark.driver.bindAddress=0.0.0.0 --conf spark.driver.host=spark-notebooks --conf spark.driver.port=7078 --conf spark.blockManager.port=7079 --conf spark.pyspark.python=/opt/bitnami/python/bin/python --conf spark.executorEnv.PYSPARK_PYTHON=/opt/bitnami/python/bin/python pyspark-shell
+      # Driver (your kernel) will be Python 3.12 after you switch kernels below
+      - PYSPARK_PYTHON=python
     ports:
       - "8888:8888"   # Jupyter
     volumes:
@@ -64,4 +65,3 @@ services:
 
 volumes:
   spark-events:
-  shared-data:

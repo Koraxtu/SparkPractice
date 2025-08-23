@@ -5,6 +5,7 @@ notebooks. Edit notebooks in VSCode while the compute runs in containers.
 
 > Works on Docker Desktop (WSL2 on Windows), macOS, and Linux.
 
+Python 3.12 REQUIRED,
 ---
 
 ## TLDR (Quick Start)
@@ -14,12 +15,14 @@ notebooks. Edit notebooks in VSCode while the compute runs in containers.
 In data/ folder, add a CSV/Parquet/JSON data source
 SQL databases can be added as a source via JDBC
 
-# 2) Connect to data source
-In Practice.ipynb, replace 'yourfilehere.csv' with your data source
-
-# 3) Start cluster + Jupyter
+# 2) Start cluster + Jupyter
 docker compose up -d
 
-# 4) Open Jupyter
+# 3) Open Jupyter
 #    Token is set in compose (JUPYTER_TOKEN=dev)
 #    Or connect VSCode → Jupyter: Existing server → http://localhost:8888/?token=dev
+
+# 4) Test your config
+Run the first 2 Jupyter cells.
+If the first one fails, most likely, the containers did not start up correctly.
+If the second cell fails, most likely, your environment is not configured correctly for Python 3.12. You may have to restart your pc after correcting the environment to ensure everything works.

@@ -9,4 +9,7 @@ wheels/
 # Virtual environments
 .venv
 
+# Personal practice files
 *.csv
+u.*
+ratings-counter*
