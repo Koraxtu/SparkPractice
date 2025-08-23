@@ -10,8 +10,9 @@ notebooks. Edit notebooks in VSCode while the compute runs in containers.
 ## TLDR (Quick Start)
 
 ```bash
-# 1) Get containers
-docker compose pull
+# 1) Add data source
+In data/ folder, add a CSV/Parquet/JSON data source
+SQL databases can be added as a source via JDBC
 
 # 2) Start cluster + Jupyter
 docker compose up -d
