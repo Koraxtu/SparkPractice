@@ -25,4 +25,5 @@ docker compose up -d
 # 4) Test your config
 Run the first 2 Jupyter cells.
 If the first one fails, most likely, the containers did not start up correctly.
-If the second cell fails, most likely, your environment is not configured correctly for Python 3.12. You may have to restart your pc after correcting the environment to ensure everything works.
+If the second cell fails, most likely, your environment is not configured correctly for Python 3.12 
+You may have to restart your pc after correcting the environment to ensure everything works.
