@@ -1,0 +1,23 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "PySpark: run current file on cluster",
+      "type": "shell",
+      "command": "docker compose run --rm -p 4040:4040 -p 5678:5678 -v \"${workspaceFolder}:/opt/app\" spark-submit bash -lc 'PYSPARK_DRIVER_PYTHON=python PYSPARK_DRIVER_PYTHON_OPTS=\"-m debugpy --listen 0.0.0.0:5678 --wait-for-client\" spark-submit --master spark://spark-master:7077 /opt/app/${relativeFile}'",
+      "problemMatcher": []
+    },
+    {
+      "label": "Spark SQL: run current .sql file",
+      "type": "shell",
+      "command": "docker compose run --rm -p 4040:4040 -v \"${workspaceFolder}:/opt/app\" spark-submit bash -lc 'spark-sql --master spark://spark-master:7077 -f /opt/app/${relativeFile}'",
+      "problemMatcher": []
+    },
+    {
+      "label": "Spark shell (Scala) against cluster",
+      "type": "shell",
+      "command": "docker compose run --rm -p 4040:4040 spark-submit spark-shell --master spark://spark-master:7077",
+      "problemMatcher": []
+    }
+  ]
+}

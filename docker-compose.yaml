@@ -1,0 +1,67 @@
+version: "3.9"
+
+services:
+  spark-master:
+    image: bitnami/spark:3.5.3
+    container_name: spark-master
+    environment:
+      - SPARK_MODE=master
+      - SPARK_LOG_LEVEL=INFO
+      - SPARK_EVENTLOG_ENABLED=true
+      - SPARK_EVENTLOG_DIR=file:///opt/spark-events
+    ports:
+      - "7077:7077"   # Spark RPC (cluster)
+      - "8080:8080"   # Master UI
+    volumes:
+      - spark-events:/opt/spark-events
+      - shared-data:/data
+
+  spark-worker-1:
+    image: bitnami/spark:3.5.3
+    container_name: spark-worker-1
+    depends_on: [spark-master]
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=4G
+      - SPARK_LOG_LEVEL=WARN
+      # Make sure executors use Bitnami's Python inside the worker image
+      - SPARK_WORKER_OPTS=-Dspark.executorEnv.PYSPARK_PYTHON=/opt/bitnami/python/bin/python
+    ports:
+      - "8081:8081"   # Worker UI (optional)
+    volumes:
+      - shared-data:/data
+
+  spark-history:
+    image: bitnami/spark:3.5.3
+    container_name: spark-history
+    depends_on: [spark-master]
+    environment:
+      - SPARK_MODE=history-server
+      - SPARK_HISTORY_OPTS=-Dspark.history.fs.logDirectory=/opt/spark-events
+    ports:
+      - "18080:18080" # History UI
+    volumes:
+      - spark-events:/opt/spark-events
+
+  jupyter:
+    # Pin notebook image to same Spark minor (3.5.3) and set fixed driver ports
+    image: quay.io/jupyter/pyspark-notebook:spark-3.5.3
+    container_name: spark-notebooks
+    depends_on: [spark-master]
+    environment:
+      - JUPYTER_TOKEN=dev
+      - SPARK_MASTER=spark://spark-master:7077
+      - PYSPARK_PYTHON=python3
+      # Driver must be reachable by workers; also tell executors which Python to use.
+      - PYSPARK_SUBMIT_ARGS=--conf spark.ui.showConsoleProgress=false --conf spark.driver.bindAddress=0.0.0.0 --conf spark.driver.host=spark-notebooks --conf spark.driver.port=7078 --conf spark.blockManager.port=7079 --conf spark.pyspark.python=/opt/bitnami/python/bin/python --conf spark.executorEnv.PYSPARK_PYTHON=/opt/bitnami/python/bin/python pyspark-shell
+    ports:
+      - "8888:8888"   # Jupyter
+    volumes:
+      - ./notebooks:/home/jovyan/work
+      - shared-data:/data
+
+volumes:
+  spark-events:
+  shared-data:
