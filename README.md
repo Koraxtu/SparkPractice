@@ -14,9 +14,12 @@ notebooks. Edit notebooks in VSCode while the compute runs in containers.
 In data/ folder, add a CSV/Parquet/JSON data source
 SQL databases can be added as a source via JDBC
 
-# 2) Start cluster + Jupyter
+# 2) Connect to data source
+In Practice.ipynb, replace 'yourfilehere.csv' with your data source
+
+# 3) Start cluster + Jupyter
 docker compose up -d
 
-# 3) Open Jupyter
+# 4) Open Jupyter
 #    Token is set in compose (JUPYTER_TOKEN=dev)
 #    Or connect VSCode → Jupyter: Existing server → http://localhost:8888/?token=dev
