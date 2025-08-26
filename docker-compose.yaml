@@ -48,17 +48,19 @@ services:
       - spark-events:/opt/spark-events
 
   jupyter:
-    # Jupyter stacks moved to quay.io; Spark 4.x images are available there.
-    image: quay.io/jupyter/pyspark-notebook:spark-4.0.0
+    build:
+      context: .
+      dockerfile: Dockerfile.jupyter
+    image: local/pyspark-notebook:spark-4.0.0-py31211
     container_name: spark-notebooks
     depends_on: [spark-master]
     environment:
       - JUPYTER_TOKEN=dev
       - SPARK_MASTER=spark://spark-master:7077
-      # Driver (your kernel) will be Python 3.12 after you switch kernels below
+      # driver uses our py312 env by default because PATH points to it
       - PYSPARK_PYTHON=python
     ports:
-      - "8888:8888"   # Jupyter
+      - "8888:8888"
     volumes:
       - ./notebooks:/home/jovyan/work
       - ./data:/data

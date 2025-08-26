@@ -1,0 +1,30 @@
+# Notebooks image for Spark 4.0.0 with Python 3.12.11 as default kernel
+FROM quay.io/jupyter/pyspark-notebook:spark-4.0.0
+
+# Use bash so `mamba` works as expected in these images
+SHELL ["/bin/bash", "-lc"]
+
+# Become root to create the env, then drop back to the notebook user
+USER root
+ENV MAMBA_NO_BANNER=1
+
+# Create a dedicated env with Python 3.12.11
+RUN mamba create -y -n py312 python=3.12.11 ipykernel && \
+    mamba clean -afy
+
+# Go back to the regular user
+USER ${NB_UID}
+
+# Make the 3.12.11 env the default Jupyter kernel *name* (overwrite 'python3')
+# so VS Code / Jupyter picks it automatically for new notebooks
+RUN conda run -n py312 python -m ipykernel install --user \
+      --name python3 \
+      --display-name "Python 3.12.11 (py312)"
+
+# Ensure the container-wide "python" points to the 3.12.11 env
+ENV PATH="/opt/conda/envs/py312/bin:${PATH}"
+ENV CONDA_DEFAULT_ENV=py312
+
+# Tell PySpark to use this Python for both driver and executors (driver side)
+ENV PYSPARK_PYTHON=/opt/conda/envs/py312/bin/python
+ENV PYSPARK_DRIVER_PYTHON=/opt/conda/envs/py312/bin/python
