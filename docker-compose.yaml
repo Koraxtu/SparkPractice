@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   spark-master:
     image: bitnami/spark:4.0.0
@@ -7,19 +5,19 @@ services:
     environment:
       - SPARK_MODE=master
       - SPARK_LOG_LEVEL=INFO
-      # History UI needs event logs
       - SPARK_EVENTLOG_ENABLED=true
       - SPARK_EVENTLOG_DIR=file:///opt/spark-events
+      - SPARK_CONF_DIR=/opt/spark/conf
     ports:
-      - "7077:7077"   # cluster RPC
-      - "8080:8080"   # Master UI
+      - "7077:7077"
+      - "8080:8080"
     volumes:
       - spark-events:/opt/spark-events
       - ./data:/data
+      - ./spark-conf:/opt/spark/conf:ro
 
-  spark-worker-1:
+  spark-worker:
     image: bitnami/spark:4.0.0
-    container_name: spark-worker-1
     depends_on: [spark-master]
     environment:
       - SPARK_MODE=worker
@@ -27,13 +25,15 @@ services:
       - SPARK_WORKER_CORES=2
       - SPARK_WORKER_MEMORY=4G
       - SPARK_LOG_LEVEL=WARN
-      # Executors should run the Bitnami Python (3.12 in this image)
+      - SPARK_CONF_DIR=/opt/spark/conf
+      # executors use Bitnami's Python 3.12.x
       - SPARK_WORKER_OPTS=-Dspark.executorEnv.PYSPARK_PYTHON=/opt/bitnami/python/bin/python
       - PYSPARK_PYTHON=/opt/bitnami/python/bin/python
     ports:
-      - "8081:8081"   # Worker UI
+      - "8081"
     volumes:
       - ./data:/data
+      - ./spark-conf:/opt/spark/conf:ro
 
   spark-history:
     image: bitnami/spark:4.0.0
@@ -42,28 +42,31 @@ services:
     environment:
       - SPARK_MODE=history-server
       - SPARK_HISTORY_OPTS=-Dspark.history.fs.logDirectory=/opt/spark-events
+      - SPARK_CONF_DIR=/opt/spark/conf
     ports:
-      - "18080:18080" # History UI
+      - "18080:18080"
     volumes:
       - spark-events:/opt/spark-events
+      - ./spark-conf:/opt/spark/conf:ro
 
   jupyter:
-    build:
-      context: .
-      dockerfile: Dockerfile.jupyter
+    # your custom image that sets Python 3.12.11 in /opt/conda/envs/py312 (or use the base image)
     image: local/pyspark-notebook:spark-4.0.0-py31211
     container_name: spark-notebooks
     depends_on: [spark-master]
     environment:
       - JUPYTER_TOKEN=dev
       - SPARK_MASTER=spark://spark-master:7077
-      # driver uses our py312 env by default because PATH points to it
+      - SPARK_CONF_DIR=/opt/spark/conf
+      # driver runs whatever `python` is in the container (your py312 env)
       - PYSPARK_PYTHON=python
+      - PYSPARK_DRIVER_PYTHON=python
     ports:
       - "8888:8888"
     volumes:
       - ./notebooks:/home/jovyan/work
       - ./data:/data
+      - ./spark-conf:/opt/spark/conf:ro
 
 volumes:
   spark-events:

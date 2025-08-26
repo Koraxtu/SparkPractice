@@ -27,3 +27,8 @@ Run the first 2 Jupyter cells.
 If the first one fails, most likely, the containers did not start up correctly.
 If the second cell fails, most likely, your environment is not configured correctly for Python 3.12 
 You may have to restart your pc after correcting the environment to ensure everything works.
+
+# Optional: Scale up spark workers
+You can replace the 3 with the number of workers you want.
+Keep in mind that each worker takes up 2 CPU cores, you can change that in the docker compose
+docker compose up -d --scale spark-worker=3
