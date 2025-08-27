@@ -13,3 +13,8 @@ wheels/
 *.csv
 u.*
 ratings-counter*
+*.txt
+*.ipynb
+
+# Allow testing Notebook
+!Test.ipynb
